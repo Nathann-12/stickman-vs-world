@@ -338,7 +338,7 @@ export function createStereoMix(durationSec) {
     }
   }
 
-  /** Layered physical strike (weapon clash, shield reflection, heavy boss knockback) */
+  /** Layered physical strike (weapon clash, shield reflection, heavy knockback) */
   function mixImpactClank(startSec, pan = 0, intensity = 0.75) {
     const dur = 0.28;
     const n = Math.floor(dur * SR);
@@ -359,6 +359,124 @@ export function createStereoMix(durationSec) {
       const s = crack + body + ring;
       outL[idx] += s * gL;
       outR[idx] += s * gR;
+    }
+  }
+
+  /** Classic springy cartoon boing (elastic trampolines, comical bounces, head-bonks!) */
+  function mixCartoonBoing(startSec, pan = 0, baseHz = 165, durSec = 0.42, gain = 0.34) {
+    const n = Math.floor(durSec * SR);
+    const startIdx = Math.floor(startSec * SR);
+    const gL = gain * Math.cos(((pan + 1) * Math.PI) / 4);
+    const gR = gain * Math.sin(((pan + 1) * Math.PI) / 4);
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      const idx = startIdx + i;
+      if (idx < 0 || idx >= totalSamples) continue;
+      const dt = i / SR;
+      const p = i / Math.max(1, n - 1);
+      const f = baseHz * (1 + 0.55 * Math.exp(-dt * 6.5) * Math.sin(2 * Math.PI * 15 * dt) + p * 0.5);
+      ph += (2 * Math.PI * f) / SR;
+      const env = Math.min(1, p / 0.03) * Math.exp(-dt * 6.2);
+      const s = (Math.sin(ph) * 0.7 + Math.sin(ph * 2.02) * 0.25) * env;
+      outL[idx] += s * gL;
+      outR[idx] += s * gR;
+    }
+  }
+
+  /** Expressive breathy cartoon slide whistle (rising leap/throw, falling drop/fail!) */
+  function mixSlideWhistle(startSec, durSec = 0.34, startHz = 420, endHz = 1380, gain = 0.22, pan = 0) {
+    const n = Math.floor(durSec * SR);
+    const startIdx = Math.floor(startSec * SR);
+    const gL = gain * Math.cos(((pan + 1) * Math.PI) / 4);
+    const gR = gain * Math.sin(((pan + 1) * Math.PI) / 4);
+    let ph = 0;
+    let seed = Math.floor(startSec * 8191) + 5;
+    let lp = 0;
+    for (let i = 0; i < n; i++) {
+      const idx = startIdx + i;
+      if (idx < 0 || idx >= totalSamples) continue;
+      const p = i / Math.max(1, n - 1);
+      const f = startHz * Math.pow(endHz / Math.max(1, startHz), p);
+      ph += (2 * Math.PI * f) / SR;
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      lp += 0.12 * ((seed / 4294967296) * 2 - 1 - lp);
+      const env = Math.min(1, p / 0.08) * Math.min(1, (1 - p) / 0.12);
+      const s = (Math.sin(ph) * 0.78 + Math.sin(ph * 2) * 0.14 + lp * 0.18) * env;
+      outL[idx] += s * gL;
+      outR[idx] += s * gR;
+    }
+  }
+
+  /** Hollow tactile wood/door knock (knocking on locked exit, tapping props, head-bonk) */
+  function mixWoodKnock(startSec, pan = 0, pitchHz = 320, gain = 0.34) {
+    const n = Math.floor(0.08 * SR);
+    const startIdx = Math.floor(startSec * SR);
+    const gL = gain * Math.cos(((pan + 1) * Math.PI) / 4);
+    const gR = gain * Math.sin(((pan + 1) * Math.PI) / 4);
+    for (let i = 0; i < n; i++) {
+      const idx = startIdx + i;
+      if (idx < 0 || idx >= totalSamples) continue;
+      const dt = i / SR;
+      const s =
+        (Math.sin(2 * Math.PI * pitchHz * dt) * 0.65 +
+          Math.sin(2 * Math.PI * pitchHz * 2.18 * dt) * 0.35) *
+        Math.exp(-dt * 68);
+      outL[idx] += s * gL;
+      outR[idx] += s * gR;
+    }
+  }
+
+  /** Multi-hit slapstick tumble / falling prop clatter (stumbles, collapsing towers, scattered objects) */
+  function mixTumbleClatter(startSec, hits = 5, spanSec = 0.42, pan = 0, gain = 0.3) {
+    for (let h = 0; h < hits; h++) {
+      const u = h / Math.max(1, hits - 1);
+      const t = startSec + Math.pow(u, 0.85) * spanSec;
+      const pitch = 290 + seeded(startSec * 17 + h * 31) * 440;
+      mixWoodKnock(t, pan + (u - 0.5) * 0.2, pitch, gain * (1 - u * 0.45));
+    }
+  }
+
+  /** Subtle warm cinema room-air bed (v5) so silent comedy beats feel alive instead of digital dead-zero! */
+  function mixRoomTone(gain = 0.0045) {
+    let seed = 424242;
+    let lpL = 0;
+    let lpR = 0;
+    for (let i = 0; i < totalSamples; i++) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      const wL = (seed / 4294967296) * 2 - 1;
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      const wR = (seed / 4294967296) * 2 - 1;
+      lpL += 0.018 * (wL - lpL);
+      lpR += 0.018 * (wR - lpR);
+      outL[i] += lpL * gain;
+      outR[i] += lpR * gain;
+    }
+  }
+
+  /** Crisp tiny cloth/air swish (v5) for silent pantomime gestures (shrug, scratchHead, point, wipeBrow) */
+  function mixGestureSwish(startSec, pan = 0, gain = 0.14) {
+    mixWhoosh(startSec, 0.11, 520, 1240, gain, pan);
+  }
+
+  /**
+   * Sidechain-style music ducking (v5): smoothly attenuates already-mixed music inside `[startSec, startSec+durSec]`
+   * right before mixing a headline comedic Foley gag (BONK, BOING, IDEA) so punchlines cut crystal clear!
+   */
+  function duckRange(startSec, durSec = 0.28, duckGain = 0.38, fadeSec = 0.04) {
+    const i0 = Math.max(0, Math.floor((startSec - fadeSec) * SR));
+    const i1 = Math.min(totalSamples, Math.floor((startSec + durSec + fadeSec) * SR));
+    const fadeN = Math.max(1, Math.floor(fadeSec * SR));
+    for (let i = i0; i < i1; i++) {
+      let mult = duckGain;
+      if (i < i0 + fadeN) {
+        const u = (i - i0) / fadeN;
+        mult = 1 - (1 - duckGain) * u;
+      } else if (i > i1 - fadeN) {
+        const u = (i1 - i) / fadeN;
+        mult = 1 - (1 - duckGain) * u;
+      }
+      outL[i] *= mult;
+      outR[i] *= mult;
     }
   }
 
@@ -487,6 +605,13 @@ export function createStereoMix(durationSec) {
     mixGlassChime,
     mixElasticPop,
     mixImpactClank,
+    mixCartoonBoing,
+    mixSlideWhistle,
+    mixWoodKnock,
+    mixTumbleClatter,
+    mixRoomTone,
+    mixGestureSwish,
+    duckRange,
     mixBufferScratchRewind,
     masterAndWriteWav,
     auditLevels,

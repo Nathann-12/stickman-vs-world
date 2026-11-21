@@ -1,6 +1,14 @@
-# Stickman vs. World — AI Agent Skill (`v3`)
+# Stickman vs. World — AI Agent Skill (`v5` — Autonomous Silent-Film Cinema Edition)
 
-> Direct, animate, and score original rule-driven **"Stickman vs. [Any Subject]"** animations (Math, Physics, Music, Electricity, Coding, Chemistry, Geometry, Finance, etc.) in **Remotion + SVG**, inspired by Alan Becker's *Animation vs.* series.
+> Direct, animate, and score original Alan Becker-style silent-film **"Stickman vs. [Any Subject]"** stories (Math, Physics, Music, Electricity, Coding, Chemistry, Geometry, Finance, etc.) in **Remotion + SVG**.
+>
+> **What's New in `v5`:**
+> - **Ground-Locked Zero-Slide Gait (`evalGroundDistance` + `evalPlantedFoot`)** + smooth cartoon turn-squash + sprint-only skid braking (zero accidental casual-walk skidding!)
+> - **Tactile Cinema Primitives (`rig.tsx`):** altitude-aware `<ContactShadow>`, automatic landing `<DustPuff>`, manga `<ImpactStar>`, wordless Alan Becker `<ThoughtBubble>` pictograms (`door`, `key`, `arrowUp`, `heart`, `broken`), catenary `<PhysicsRope>`, `<SpringCoil>`, and limbed `<LivingEntity>` rivals!
+> - **Smart Cinema Camera & Auto-Timing (`cameraEngine.ts` + `timeline.ts`):** `evalSmartCamera` (soft Lead Room + organic handheld reaction breathing + world bounds clamp), `frameTwoPoints`, and `autoDeriveJumpTiming`.
+> - **Automated Pre-Render Physics Linter (`auditChoreography.mjs`):** catches teleports, 9:16 TikTok safe-zone clips, Hero↔Rival sprite overlaps, and breathless pacing in `<0.2s` before rendering!
+> - **29 Live-Verified Studio Acoustic Samples (`fetchRealSamples.mjs` + `audioMixerTemplate.mjs`):** full 4-octave Yamaha C5 Concert Grand Piano (`C2..C6`), Acoustic Drums, Bongos, Berklee Orchestral **Gong, Bell, Chime & Plucked String**, plus warm `mixRoomTone`, sidechain `duckRange`, and `mixGestureSwish`!
+> - **One-Command Scaffolder (`scaffoldProject.mjs`)** + Dual Motion-Burst QA (Walk/Carry Zero-Slide Burst + Impact Burst) + Non-Latin/Thai Typography Guardrail!
 
 Works for both **9:16 vertical TikTok / Reels / Shorts (`1080×1920` @ 60fps)** and **16:9 widescreen YouTube (`1920×1080` @ 60fps)**.
 
@@ -84,21 +92,24 @@ Once installed, start a fresh conversation with your AI agent and prompt natural
 
 ```text
 skills/stickman-vs-world/
-├── SKILL.md                                         # 6 Non-Negotiable Craft Laws & 7-Stage Production Pipeline
+├── SKILL.md                                         # 7 Non-Negotiable Masterpiece Laws & 7-Stage Pipeline (v5)
 ├── references/
-│   ├── storytelling-and-derivation.md               # 7-Step Derivation Ledger, 4 Anti-Clone Macro-Structures, Concept-Budget Rule & 5 Domain Blueprints
-│   ├── stickman-motion-and-acting.md                # 5-Layer 2-Bone IK Motion Engine, 5 Alan Becker Acting Patterns & Contact Sync Math
-│   ├── visual-arenas-and-svg-engineering.md         # Pure-Black 3-Color System, 9:16 TikTok Safe Zones, 2.5D Arenas & Chromium SVG Gotchas
-│   ├── audio-and-foley-pipeline.md                  # Real Studio Sample Mixing, HitStop-Synced Foley Toolkit, DSP Gotchas & RMS Audit
-│   └── qa-and-rendering.md                          # 12–16 Keyframe Visual Audit + 5-Frame Motion-Burst Check & Remotion Flags
-└── assets/engine/                                   # Strict-TypeScript & Node.js Drop-In Starter Engine
-    ├── ik.ts                                        # Analytic 2-Bone IK, HitStops + realTimeOf(), springImpulse(), elasticScale(), computeContactX()
-    ├── cameraEngine.ts                              # Continuous multi-arena focus/zoom evaluator & pivot-safe SVG transform
-    ├── rig.tsx                                      # Customizable StickmanBase, GPU-safe GlowFilterDefs, GlowLine, JaggedBeam, BossEye, ArticulatedLimb, Sakuga VFX
-    ├── poseEngine.ts                                # Continuous evalPath, dynamic surface surfing, skid-braking, mid-motion emotions, floor-reach crouch, C¹ smoother
-    ├── CompositionTemplate.tsx                      # End-to-end pre-wired Remotion composition skeleton
-    ├── fetchRealSamples.mjs                         # Cross-platform fetcher for 21 real Yamaha C5 Grand Piano + Acoustic Drum + Bongo WAVs
-    └── audioMixerTemplate.mjs                       # Stereo real-sample + HitStop-synced automatic footsteps + non-music Foley + real-buffer DJ rewind + RMS auditor
+│   ├── storytelling-and-derivation.md               # Character Wants, 4 Cinema Archetypes, Rule-of-Three & Beat Script
+│   ├── stickman-motion-and-acting.md                # Ground-Locked Zero-Slide 2-Bone IK, Pantomime Library & Prop Continuity
+│   ├── visual-arenas-and-svg-engineering.md         # Zero-HUD Cinema Framing, Smart Camera, Thai Typography & SVG Gotchas
+│   ├── audio-and-foley-pipeline.md                  # Silence-First 29-Sample Studio Scoring, Room-Tone, Ducking & Cartoon Foley
+│   └── qa-and-rendering.md                          # Automated Physics Lint, Dual Motion-Bursts & Stranger Mute-Test
+└── assets/engine/                                   # Strict-TypeScript & Node.js Drop-In V5 Cinema Engine
+    ├── ik.ts                                        # Analytic 2-Bone IK, HitStops + realTimeOf(), evalBallisticArc, evalPropBounce, computeContactX
+    ├── cameraEngine.ts                              # evalSmartCamera (Lead Room + handheld breathing), frameTwoPoints, worldToScreen
+    ├── rig.tsx                                      # StickmanBase, LivingEntity, ThoughtBubble, ContactShadow, DustPuff, ImpactStar, PhysicsRope, SpringCoil
+    ├── poseEngine.ts                                # Ground-locked zero-slide gait, smooth turn-squash, sprint-only skid, Pantomime library, C¹ smoother
+    ├── timeline.ts                                  # autoDeriveJumpTiming & auditPathSpeeds
+    ├── CompositionTemplate.tsx                      # Pre-wired Zero-HUD V5 cinema story skeleton
+    ├── scaffoldProject.mjs                          # One-command Remotion + V5 Engine project scaffolder
+    ├── auditChoreography.mjs                        # Automated pre-render teleport, safe-zone, overlap & pacing linter
+    ├── fetchRealSamples.mjs                         # Cross-platform fetcher for 29 verified real studio acoustic & orchestral WAVs
+    └── audioMixerTemplate.mjs                       # Stereo real-sample + room-tone + sidechain ducking + HitStop-synced Foley + RMS auditor
 ```
 
 ---

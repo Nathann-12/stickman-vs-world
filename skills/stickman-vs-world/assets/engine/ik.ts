@@ -154,8 +154,8 @@ export function computeCameraShake(t: number, bursts: ShakeBurst[]): Vec2 {
 
 /**
  * Damped elastic spring impulse in [-1, 1] after `hitAt`.
- * Use on touched symbols, struck bosses, plucked strings, or landed platforms so
- * props feel physically springy instead of rigid!
+ * Use on touched symbols, struck rivals, plucked strings, or landed platforms so
+ * every prop reacts with physical cartoon elasticity.
  */
 export function springImpulse(
   t: number,
@@ -170,7 +170,6 @@ export function springImpulse(
 
 /**
  * Volume-preserving elastic squash-and-stretch `{ sx, sy }` after a poke/spawn/hit.
- * Guarantees props visually ring with tactile energy!
  */
 export function elasticScale(
   t: number,
@@ -186,8 +185,7 @@ export function elasticScale(
 export type RecoilHit = { at: number; dx: number; dy: number; decay?: number };
 
 /**
- * Directional knockback & elastic return vector for bosses, rival stickmen, or struck props.
- * Peaks rapidly at +0.05s after impact and springs back smoothly.
+ * Directional knockback & elastic return vector for characters or struck props.
  */
 export function evalRecoilOffset(t: number, hits: RecoilHit[]): Vec2 {
   let x = 0;
@@ -203,19 +201,68 @@ export function evalRecoilOffset(t: number, hits: RecoilHit[]): Vec2 {
   return { x, y };
 }
 
-/** Standard stickman contact reach distances (px) so strikes NEVER air-punch! */
+/**
+ * Evaluates a real ballistic throw/drop arc between `from` and `to` with gravity lift & rotation.
+ * Keeps props physically continuous (carried -> thrown -> bounced -> settled) with ZERO teleports!
+ */
+export function evalBallisticArc(
+  from: Vec2,
+  to: Vec2,
+  startT: number,
+  endT: number,
+  t: number,
+  arcHeight = 160,
+  spinDeg = 360
+): { x: number; y: number; rotDeg: number; progress: number } {
+  const u = clamp01((t - startT) / Math.max(0.0001, endT - startT));
+  const lift = 4 * u * (1 - u) * arcHeight;
+  return {
+    x: lerp(from.x, to.x, u),
+    y: lerp(from.y, to.y, u) - lift,
+    rotDeg: u * spinDeg,
+    progress: u,
+  };
+}
+
+/**
+ * Evaluates decaying multi-bounce settling height (px upward) after a dropped/thrown prop lands at `landT`.
+ */
+export function evalPropBounce(
+  t: number,
+  landT: number,
+  firstBouncePx = 42,
+  firstDurSec = 0.28,
+  bounces = 3
+): number {
+  const dt = t - landT;
+  if (dt <= 0) return 0;
+  let elapsed = 0;
+  let h = firstBouncePx;
+  let dur = firstDurSec;
+  for (let i = 0; i < bounces; i++) {
+    if (dt >= elapsed && dt < elapsed + dur) {
+      const u = (dt - elapsed) / dur;
+      return Math.sin(u * Math.PI) * h;
+    }
+    elapsed += dur;
+    h *= 0.45;
+    dur *= 0.72;
+  }
+  return 0;
+}
+
+/** Standard stickman contact reach distances (px) so strikes and grabs NEVER air-punch! */
 export const CONTACT_REACH = {
   POKE: 68,
   PUNCH: 66,
   KICK: 84,
   PUSH: 62,
+  GRAB: 58,
   SLASH_BASE: 70,
 } as const;
 
 /**
- * Computes exact attacker root `x` so a strike lands flush on `targetX` at contact frame.
- * Example: attacking rightward (`facing = 1`) with a flying kick (`reachPx = CONTACT_REACH.KICK`)
- * against a boss edge at `targetX = 760` returns `x = 676`!
+ * Computes exact attacker/actor root `x` so a hand/foot connects flush on `targetX` at contact frame.
  */
 export function computeContactX(
   targetX: number,

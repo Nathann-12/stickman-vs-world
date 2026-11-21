@@ -1,168 +1,102 @@
-# Storytelling, Derivation Chains & Multi-Arena Choreography
+# Silent-Film Storytelling, Character Wants & Rule-of-Three Pacing (`v4`)
 
-What separates Alan Becker's *Animation vs. Math / Physics / Coding* from generic stickman fight videos is **rule-driven causal storytelling**: the audience isn't just watching explosions — they are watching a curious, wordless hero *discover the laws of a universe*, play with them, accidentally wake a threat born from those same laws, and outsmart it using clever combinations of rules they *just saw established*.
+Why do Alan Becker's *Animation vs. Math / Physics / Coding* feel like genuine Pixar-level short films while most AI stickman animations feel like awkward educational boss-rushes?
 
----
-
-## 1. The Golden Axiom: The Derivation Chain ("1 + 1 = 2" Rule)
-
-**Rule:** Nothing significant enters the story out of nowhere. Every weapon, power, arena, enemy, and finishing move MUST be **physically built, combined, split, or morphed** from elements already visible on screen.
-
-Draft a **7-Step Derivation Ledger** before writing a single line of animation code:
-
-| Step | Role in Story | Logical Link Required |
-| :--- | :--- | :--- |
-| **1. Single Primitive** | First contact in the void | Hero lands on or touches ONE minimal object of the domain (`1`, `440 Hz string`, `H atom`, `0/1 bit`, `point mass`). |
-| **2. First Operation** | Discovery of cause & effect | Hero pokes/strikes Primitive → it splits, duplicates, or mutates (`1 + 1 = 2`, `♩ = ♪ + ♪`). |
-| **3. Dual / Inverse + Scaling** | Mastery of parameters | Hero tests `+` vs. `-` (`♯` up / `♭` down, push vs. pull) and discovers scaling (`×2 Hz = Octave`, exponents, recursion). |
-| **4. Joyful Compound Toy → Arena 1** | Emotional investment & world-building | Hero combines primitives into something joyful/complete (a 4-chord song, a working machine, a clone squad) that physically **unfolds** into Arena 1. |
-| **5. Self-Inflicted Twist → Antagonist** | Logical conflict birth | Hero pushes one rule too far (tapping `4/4` tempo, writing `while(true)`, triggering `e^(iπ)`, creating an unstable isotope) → those exact pieces **fold together into the Boss**. |
-| **6. Tactical Counter-Devices & Arena Shifts** | Escalation & cleverness | Direct force fails → hero visibly combines 2 domain symbols into a counter (`| | + : = :||` reflector, `try/catch` shield, `pH` buffer) and physically blasts/falls/morphs the fight into Arena 2 & Arena 3. |
-| **7. Act-I Callback Climax** | Satisfying payoff | Hero freezes/corners the Boss, then uses the **very first primitive or operator from Act I** (e.g., slapping `♯` onto `C` in `Am` → `A Major`) to transform the Boss's own core equation! |
-
-### Self-Test for Every Prop
-Ask: *"If a viewer pauses right here, can they point back 10–50 seconds and say 'oh, that's made from the thing he discovered earlier'?"* If not, add a 1.0–1.8s physical assembly/morph beat before using it.
+Because Alan Becker NEVER builds a "5-concept showcase with a boss fight." He builds a **silent cartoon about a relatable character who WANTS something simple**, tries to get it using the rules of the world, makes hilarious mistakes, clashes with a **living personality**, and wins with a clever callback to something humble from the opening scene.
 
 ---
 
-## 2. Cross-Domain Derivation Blueprints
+## 1. Start With a Relatable Character Want (Within 5 Seconds!)
 
-Use these as structural inspiration (never copy verbatim) when designing any new subject:
+Before choosing a single equation or tool, write a **One-Sentence Silent Premise** that a 10-year-old could understand with the sound muted:
 
-### Music (`BEATBREAKER` Reference Blueprint)
-1. **Primitive:** Single glowing `440 Hz (A)` taut string → Hero falls "thump!" onto it.
-2. **Operation:** Pokes `♩` → splits into `♪ + ♪`.
-3. **Inverse + Scale:** Tests `♯` (pitch up) vs. `♭` (pitch down), jumps high → `440 Hz × 2 = OCTAVE`.
-4. **Playground → Arena 1:** Playfully stacks 4 chords (`Am → F → C → G`) → chords **unfold** into a 3D-perspective Concert Grand Piano → hero stomps `+KICK`, `+SNARE`, `+HI-HAT` and jams his own song!
-5. **Self-Inflicted Boss:** Hero taps `1-2-3-4` (`4/4 → ♩ = 120`) → the 4 vertical barlines fold into **The Metronome** (`♩ = 120 → 180 !`).
-6. **Counters & Arena Shifts:**
-   - Stomps piano keys to fire anti-air light beams at falling notes.
-   - Assembles `| | + : = :||` (Repeat Sign) to reflect boss beam back.
-   - Slaps `A + ♯ = A♯ ↑` uppercut launching boss upward into Arena 2.
-   - Boss's sound wave **coils** into a giant Vinyl Turntable → hero grabs the record and does a **DJ Rewind** scrubbing boss's own attack notes backward!
-   - Splits frequencies into `BASS / MID / HIGH` EQ console → parkours across sliders dodging vertical lasers → shoves `BASS +12dB MAX` blasting into Arena 3.
-7. **Act-I Callback Finale:** Assembles `⁀ + • = 𝄐` (Fermata) to freeze time → slaps the Act-I `♯` onto `C` inside `Am (A·C·E)` → transforms it into golden **`A MAJOR (A·C♯·E)`** `fff` meteor finisher!
+> **`[Hero]` wants `[tangible visual goal]`, discovers `[Rule 1]` to try getting it, accidentally triggers `[comedic escalation / living rival]`, fails twice in escalating ways, and succeeds on Try #3 by cleverly reusing `[Act-I primitive]`.**
 
-### Math Blueprint
-- **Primitive:** Single `1` → pokes it → `1 + 1 = 2` → copies `+` / `-` / `×` / `÷`.
-- **Playground:** Pulls `-` into a staff/number-line sword; builds a joyful `2² → 2³` tower.
-- **Self-Inflicted Boss:** Combines `e`, `i`, `π` → awakens **Euler's Identity (`e^(iπ) = -1`)** which shifts coordinates into the Imaginary Plane.
-- **Arena Shifts:** Number Line → 2D Cartesian Graph (`sin(x)` wave surfing!) → Complex Unit Circle rotation arena.
-- **Counters:** Uses `√` as a halving blade, `|x|` absolute-value walls to trap negatives, `×(-1)` flip kick.
-- **Callback Finale:** Multiplies the boss's unstoppable infinity/exponent chain by Act-I's humble `0` or balances both sides of `=` into calm equilibrium.
+### Examples of Strong Visual Goals (Readable in 1 Second Without Text!)
+- **Locked Exit Door / High Portal:** Hero wakes up, tries the doorknob (*locked!*), spots a glowing keyhole or unreachable ledge high overhead, and spends the whole film trying to reach or unlock it.
+- **Runaway Living Creature / Mischievous Symbol:** A cheeky little living symbol (`e`, `π`, `g`, a stray `1`, a bouncing atom) steals Hero's accessory or blocks the exit and taunts Hero into a Looney Tunes-style chase of wits!
+- **Fixing a Broken Thing / Building a Friend:** Hero is lonely, builds a playful helper/machine out of domain rules, gets greedy upgrading it, and it Hilariously takes over the room.
+- **Friendly Show-Off Rivalry:** Two stickmen try to one-up each other with cooler domain tricks until one accidentally breaks gravity/code/math and both panic to fix it together.
 
-### Physics Blueprint
-- **Primitive:** Floating point mass in zero-G → drops when `g = 9.8 m/s²` activates.
-- **Playground:** Draws force vectors `F →` to launch himself, compresses a spring (`F = -kx`) as a trampoline, bounces light through a prism.
-- **Self-Inflicted Boss:** Over-compresses mass into a **Singularity / Black Hole** (`E = mc²` / Gravity Well) that swallows the playground.
-- **Arena Shifts:** Flat Lab Floor → Parabolic Trajectory Canyon → Curved Spacetime Grid / Event Horizon.
-- **Counters:** Drops opposing `Portal A / Portal B` (conservation of momentum sling), uses `Friction μ = 0` ice-slide dodge, mirrors laser with Snell's Law prism.
-- **Callback Finale:** Uses Newton's 3rd Law (`F₁ = -F₂`) + Act-I's single vector arrow to turn the Black Hole's own gravitational pull into a slingshot orbit that stabilizes it into a glowing star.
-
-### Coding / Algorithms Blueprint
-- **Primitive:** Blinking terminal cursor `_` + single bit `0` → pokes it → flips to `1`.
-- **Playground:** Discovers `var`, `if/else` switch bridge, and `for (i < 4)` to spawn 3 playful mini-clones dancing in sync.
-- **Self-Inflicted Boss:** Hero forgets the exit condition on `while (true)` → spawns an overheating **Infinite Loop / Stack Overflow Hydra**.
-- **Arena Shifts:** Flat Terminal Line → Nested Bracket Call-Stack Tower → Memory Heap / Binary Tree Maze.
-- **Counters:** Builds a `try { } catch` blast shield, swings a `break;` katana, uses `// comment-out` to temporarily mute an incoming projectile!
-- **Callback Finale:** Freezes execution at a glowing red **Breakpoint `●`**, inserts Act-I's single `0` into `return 0;` (or `i++` exit condition) to collapse the infinite recursion cleanly!
-
-### Chemistry Blueprint
-- **Primitive:** Single Hydrogen (`H`) sphere → bumps a second `H` → covalent bond `H–H`.
-- **Playground:** Combines `2H + O → H₂O` splash pool, builds glowing neon carbon rings (`C₆`) as stepping stones.
-- **Self-Inflicted Boss:** Accidentally mixes volatile reagents past activation threshold → awakens an **Unstable Acid / Chain-Reaction Core (`pH 1`)**.
-- **Arena Shifts:** Molecular Void → 3D Periodic Table Tile Floor (stepping on `Na`, `Fe`, `Ne` triggers elemental properties!) → Atomic Orbital Cloud.
-- **Counters:** Throws `OH⁻` base blocks to neutralize `H⁺` acid beams (`H⁺ + OH⁻ → H₂O`), uses a Noble Gas (`He`/`Ne`) inert shield wall.
-- **Callback Finale:** Drops a Catalyst lowering the activation barrier, bonds Act-I's stray electron to complete the Boss's outer valence shell (Octet Rule) → chaotic core stabilizes into a radiant crystal!
+**Litmus Test:** If your premise reads *"Hero arrives, plays with 4 toys, then a giant angry boss spawns and attacks him,"* **STOP AND REWRITE IT!** Give the hero a personal **Want** first!
 
 ---
 
-## 3. Macro-Structure Library (Anti-Clone Rule) & Concept-Budget Pacing
+## 2. The 4 Cinema Story Archetypes (Never Clone a Boss-Rush!)
 
-**Anti-Clone Rule:** Do NOT reskin the exact same *"4 items unfold into floor → uppercut to S2 → rewind gag → 3 sliders → freeze"* skeleton on every subject! Pick the **macro-structure that authentically fits your subject**:
+Choose the archetype that produces the funniest, most human story for your subject:
 
-| Macro-Structure | World Axis | Best Domains | Signature Flow |
+| Archetype | Core Conflict | Best Subjects | Signature Emotional Payoff |
 | :--- | :--- | :--- | :--- |
-| **A. Vertical Escalation Tower** | `S1_Y=0 → -1920 → -3840` | Music, Electricity, Climbing/Power Tiers | Build toy floor → launch upward through stages → cosmic climax. |
-| **B. Horizontal Discovery Road-Trip** *(Classic AvM / AvP)* | `S1_X=0 → +1920 → +3840` | Math, Physics, History, Mechanics | Open black infinity → walk right discovering zones organically → high-speed chase across changing terrain → loop back to the very first Act-I landmark! |
-| **C. Recursive Chaos / Clone Sandbox** | Zoom-Out (`1.3× → 0.55× → 1.15×`) | Coding, Biology, Finance, AI | Hero multiplies a tiny rule/clone happily → swarm spirals out of control filling the frame → dives inside the core engine to fix the root condition! |
-| **D. Shifting Escape / Puzzle Chamber** | Single morphing frame + gravity flips | Geometry, Logic, Chemistry, Chess | Hero trapped inside a reactive geometric box/board → manipulates walls, angles, or rules until the puzzle itself unlocks the exit. |
-
-### Mandatory Runtime Concept-Budget & Comedic Breathing Rule
-Real Alan Becker shorts feel funny because **every gag breathes for `1.2–2.2s`**. Cramming 9 concepts into 90 seconds turns comedy into a rushed lecture! Enforce these hard ceilings:
-
-| Runtime | Max Arenas | Max Core Domain Rules | Mandatory Comedic Breathing Beats |
-| :--- | :---: | :---: | :--- |
-| **60s** | 1–2 | 3–4 rules | At least **2 silent/reaction pauses** (`1.0–1.5s` each) |
-| **90s** | 2–3 | 5–6 rules | At least **3 reaction/gag beats** (`1.2–2.0s` each) |
-| **120s+** | 3–4 | 7–8 rules | Generous 2–3s silent acting beats & multi-phase boss adaptation |
-
-**Pruning Test:** If any concept gets less than `6 seconds` on screen, **cut it** and hand those seconds to your strongest visual gag or silent reaction beat!
-
-### The 6-Act Pacing Matrix
-Maintain crisp momentum while giving the hero room to *breathe and be likable*. **Do not rush straight into fighting at 5 seconds!** Audiences care about a battle ONLY after watching the hero discover and enjoy his world first.
-
-| Act | % of Runtime | 60s Clip | 90s Clip | 120s Clip | Emotional Goal & Key Beats |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **I. Arrival & First Contact** | 0–12% | 0–7s | 0–11s | 0–14s | Portal/drop into pure black void → heavy tactile landing ("thump") → poke single primitive → curiosity double-take → discover basic rule + inverse/scale. |
-| **II. Joyful Playground & Mastery** | 12–38% | 7–23s | 11–35s | 14–46s | Hero experiments playfully, builds a multi-step creation (e.g., 4 chords → 3D Piano + drums), celebrates with a happy hop/spin. **Crucial:** teaches audience the domain rules effortlessly! |
-| **III. Self-Inflicted Twist** | 38–46% | 23–28s | 35–41s | 46–55s | Hero taps/pushes one rule too hard → elements snap into crimson danger → Boss physically folds/assembles from hero's own pieces → hero recoils in shock! |
-| **IV. Arena 1 Clash & Counter** | 46–64% | 28–39s | 41–58s | 55–77s | Boss attacks with domain projectiles → hero uses Arena 1 defensively → thinks → visibly combines 2 symbols into Counter Device #1 → lands signature vertical/forward launch into Arena 2. |
-| **V. Arena 2 Shift, Gag & Parkour** | 64–82% | 39–50s | 58–74s | 77–98s | Seamless physical transition (NO fade cut!) → Arena morphs from attack/environment → **1 clever comedic reversal gag** (e.g., DJ Rewind, Comment-Out, Gravity Flip) → tense obstacle/parkour climb → power boost launch into Arena 3. |
-| **VI. Callback Climax & Resolution** | 82–100% | 50–60s | 74–90s | 98–120s | **Silence/Freeze tension beat** (Fermata / Breakpoint / Time-Dilation) → 4-beat countdown or wind-up → Hero applies Act-I primitive to transform the Boss → 2–3 frame `#FFFFFF` Impact Frame + massive burst → peaceful landing & minimalist title card (last 4–5s). |
+| **A. The Locked Exit / Reachable Goal** | Hero vs. an obstacle (locked door, tall cliff, broken bridge) using 3 escalating domain contraptions. | Physics, Geometry, Electricity, Chemistry | Try #1 is pathetically small; Try #2 hilariously overpowers and wrecks Hero; Try #3 combines Act-I's tiny piece cleanly and Hero casually walks out! |
+| **B. The Mischievous Runaway Rival** *(Classic AvM)* | Hero vs. a cheeky living symbol/creature (`LivingEntity`) with legs, arms, and smug attitude who keeps dodging and outsmarting Hero. | Math, Coding, Music, AI | Chase escalates absurdly until Hero outsmarts the rival with an Act-I trick — ending in either a comedic checkmate or an unexpected high-five truce! |
+| **C. The Helpful Creation Gone Wild** *(Sorcerer's Apprentice)* | Hero builds a cute helper/clone/automaton to do chores or play, tweaks one parameter too far, and loses control. | Coding, Biology, Finance, Chemistry | Hero tries sneaking (`tiptoe`) past the chaotic swarm to quietly flip the tiny Act-I root switch back! |
+| **D. Friendly Rivalry / Accidental Chaos** | Two stickmen (`StickmanBase` duo) one-up each other building gadgets until the room breaks, forcing teamwork. | Music, Physics, Engineering, Math | Comedic blame-pointing (`point` + `shrug`), frantic teamwork, triumphant fist-bump! |
 
 ---
 
-## 4. Seamless Multi-Arena World Architecture (Zero Fade Cuts)
+## 3. The Rule of Three & The "Beat → Reaction → Decision → Action" Rhythm
 
-Never cut to black between scenes like a PowerPoint presentation. Put **every arena inside one unified world-space `<g transform={camTransform}>`**:
+Real comedy lives in **pauses and escalation**, never non-stop action!
 
-- **9:16 Vertical Tower (`1080×1920`):**
-  - `STAGE_1_Y = 0` (Floor near `y = 1090`)
-  - `STAGE_2_Y = -1920` (Directly above Stage 1! Uppercut launches hero & boss straight up into the sky of Stage 1 and into Stage 2)
-  - `STAGE_3_Y = -3840` (Directly above Stage 2! Super-boost/shockwave rockets them into the cosmic climax arena)
-- **16:9 Widescreen Panorama (`1920×1080`):**
-  - `STAGE_1_X = 0`, `STAGE_2_X = 1920`, `STAGE_3_X = 3840` (Chase/dash/knockback carries the camera smoothly across zones).
+### The Rule of Three Escalation Spine
+Structure 60–90s shorts around **3 crystal-clear attempts** instead of a rushed 6-act checklist:
+1. **Setup (`0–18%`, ~10–15s):** Establish Hero's **Want** immediately (e.g., knocks on locked door → tries pulling handle → `scratchHead` thinking). Spot ONE humble Act-I primitive on the floor.
+2. **Attempt 1 — The Cute Under-Powered Try (`18–40%`, ~15–20s):** Hero physically picks up the primitive, tests how it works, gets an excited lightbulb idea (`ExpressiveEmote "idea"`), and tries solving the goal — **it falls comically short** (or the Rival effortlessly sidesteps and taunts!).
+   - *Mandatory Reaction Beat (`1.5–2.2s`):* Hero stares, `shrug` or `slump`, dusts off, refuses to give up!
+3. **Attempt 2 — The Over-Committed Backfire (`40–72%`, ~20–28s):** Determined Hero cranks the rule WAY too high (stacks multipliers, flips a negative sign, spawns too many clones, boosts gravity/voltage to max). For 2 seconds it looks awesome (`smug` / `dustHands`) — then **CHAOS ERUPTS**! The contraption backfires, chases Hero, or wakes a furious/mischievous escalation across the room!
+   - *Mandatory Reaction Beat (`1.5–2.2s`):* Panic sprint, `stumble` slapstick, cornered breathing pause (`exhausted` / `panicked`).
+4. **Turning Point — Silent Realization (`72–80%`, ~5–7s):** Everything slows or pauses. Hero glances at the **humble Act-I object** lying nearby → glances back at the chaos → Double-Take! Tiny lightbulb hop (`ExpressiveEmote "idea"`)!
+5. **Attempt 3 — Clever Act-I Callback Payoff & Warm Ending (`80–100%`, ~12–18s):** Hero physically grabs/carries/throws that exact Act-I piece into the heart of the Attempt-2 chaos — **inverting the problem cleanly** (3-frame `#FFFFFF` Impact Frame on a big physical payoff, OR crisp comedic click!). Hero achieves their original **Want**, delivers a charming closing gesture (`wipeBrow`, `dustHands`, high-five with Rival, or casually strolling through the unlocked door!), followed by a clean 3–4s end title.
 
-### 5 Seamless Transition Mechanics
-1. **Structural Unfold:** Floating primitives scale/unfold directly into the playable arena floor (`scale(lerp(0.35, 1, p), p)`).
-2. **Wave/Particle Coiling:** Boss's attack wave spirals and solidifies into the next arena's centerpiece (e.g., sound wave → vinyl disc; vector field → orbital ring).
-3. **Uppercut / Rocket Launch:** Hero knocks Boss through the top of the frame; camera tracks both bodies continuously upward (`camY` smoothly interpolates `0 → -1920`) with trailing speed lines and afterimages.
-4. **Floor Shatter / Gravity Drop:** Impact cracks the floor; both plummet downward with air-stretch poses into a lower chamber.
-5. **Scale Zoom-Out:** Camera zooms out smoothly (`1.2× → 0.5×`) revealing that the current platform is a component inside a larger domain machine.
-
----
-
-## 5. Designing an Alive Antagonist (Closing the Alan Becker Gap)
-
-Do not animate the Boss as a rigid, hovering PNG turret. Give every Boss a **behavioral state machine** and **physical reactivity**:
-
-1. **State Machine:** `assembling → dormant/scanning → annoyed → telegraphing → attacking → hitRecoil → overdrive → frozen/outsmarted → resolved`.
-2. **Mandatory Attack Telegraph (`0.30–0.45s`):** Before firing any beam, projectile, or slam, visibly charge/glow/pull back so the viewer anticipates the strike (e.g., pendulum pulls wide, core flashes bright crimson, warning reticle locks on).
-3. **Hit Recoil & Flinching:** Whenever the hero reflects a beam or lands a counter, apply an instant recoil offset (`recoilX`, `recoilY`, tilt angle, temporary white flash) decaying exponentially (`Math.exp(-dt * 10)`).
-4. **Escalation Readability:** Make the Boss's phase-2 Overdrive immediately legible visually AND aurally (e.g., `♩ = 120` flips to `♩ = 180 !`, aura doubles, attack cadence accelerates, eyes/core narrow).
-5. **Reactive Positioning:** Move the Boss continuously along its own `BOSS_PATH` — hovering closer to pressure the hero, backing up when outsmarted, chasing into the next arena!
+### The Golden Silence & Reaction Beat Law
+Every surprising cause-and-effect moment MUST breathe across 4 sub-beats:
+1. **Cause** (`0.4s`): Hero pokes/pulls/throws prop.
+2. **Effect** (`0.5s`): Something unexpected happens (rebounds, shoots through roof, rival laughs).
+3. **Silent Reaction (`1.2–2.2s`)**: Camera punches in (`1.22–1.35×`). Hero freezes, double-takes, `scratchHead` / `shrug` / `sweat` — let the *viewer* laugh and read Hero's mind!
+4. **Decision** (`0.4s`): Hero snaps into `determined` or `idea` hop and launches the next attempt!
 
 ---
 
-## 6. Show-First Visual Clarity & Minimal Text Discipline
+## 4. Unhurried Runtime Pacing Budget (Anti-Rush Ceiling)
 
-- **Alan Becker ideal:** Pure visual acting tells 80%+ of the story; formulas/symbols act as *diegetic props* (physical objects characters touch, slap, combine, and ride), NOT subtitles!
-- **TikTok / Vertical Short Balance:** Because mobile viewers scroll fast, short 2–5 token symbolic formulas (`♩ = ♪ + ♪`, `A + C + E = Am`, `| | + : = :||`, `BASS +12dB MAX!`) are valuable clarity anchors **when paired with physical manipulation**.
-- **Hard Text Rules:**
-  - Never write full explanatory sentences on screen.
-  - Show at most **1 formula popup** + **1 compact progress HUD** at a time.
-  - Fade/hide every popup cleanly *before* the next burst or stage transition arrives — zero text collisions.
+Do NOT cram 3 arenas and 6 rules into 60–90 seconds! Give the characters space to act:
+
+| Runtime | Max Locations | Max Core Domain Rules | Minimum Silent Reaction Beats | Recommended Story Spine |
+| :--- | :---: | :---: | :---: | :--- |
+| **60s** | **1 rich stage** | **2–3 rules** | **3 beats (`1.3–2.0s` each)** | Setup → Attempt 1 (small fail) → Attempt 2 (wild backfire) → Attempt 3 (clever Act-I win) |
+| **90s** | **1–2 connected spaces** | **3–4 rules** | **4 beats (`1.5–2.2s` each)** | Setup → Discovery & Rival intro → Escalating Chase / Attempt 2 Backfire → Turning Point → Callback Payoff + Warm Epilogue |
+| **120s+** | **2–3 connected spaces** | **4–5 rules** | **6+ generous pantomime beats** | Full character arc (conflict → empathy/truce or multi-stage puzzle escape) |
+
+**The 8-Second Rule:** Every distinct domain rule introduced MUST get at least **8–12 seconds** of physical play and consequence before introducing the next rule. If a rule only flashes for 3 seconds, **cut it** and give those seconds to character acting!
 
 ---
 
-## 7. Mandatory Pre-Code Storyboard Table
+## 5. Pure Cinema Frame (Zero-HUD Default) & Diegetic Props
 
-Before writing Remotion TSX, draft this exact table covering `0.0s` to `END` so visuals, camera, and real-sample audio share one single source of truth:
+- **Default Mode = Zero-HUD Cinema:** No top chapter banners (`I. FIRST CONTACT`), no bottom/top progress pill bars (`[0/1][for(3)]`), no floating subtitle explainers!
+- **Let Objects Speak Diegetically:** A locked door with a glowing keyhole, a massive boulder labeled `100 kg`, a tilted gravity arrow `g ↓`, a mischievous walking `e`, a giant spring `k`, or a blinking `return 0;` switch sitting *physically on the set* tells the entire story without breaking cinema immersion.
+- **Tiny Silent-Film Emotes Only When Helpful:** Use `<ExpressiveEmote>` (`?`, `!`, `sweat`, `idea`) briefly next to a character's head to sharpen a comic pause — never explanatory sentences.
+- *(Exception: Add minimal formula callouts ONLY if the user explicitly asks for an educational explainer overlay.)*
+
+---
+
+## 6. Cross-Domain Story Sparks (Character-Driven, Not Boss-Rush!)
+
+- **Physics (`THE LAST LEDGE` — Locked Exit):** Hero wakes trapped at the bottom of a deep glowing well, longing to reach the open sky portal at the top (`Want`). Finds a glowing **Force Arrow `F →`** and a **Spring `k`** on the floor. *Try #1:* Compresses spring gently → bounces halfway, waves pathetically, falls back (`shrug`). *Try #2:* Flips `g ↓` upside-down to `-g ↑`! Everything (hero + boulders) rockets violently upward, bonks the ceiling, and chaos pinballs the room! *Try #3:* Sneaks/catches a falling boulder, places it on a seesaw lever + Act-I's humble `F →` arrow → clean conservation-of-momentum slingshot straight through the sky portal!
+- **Math (`RUNAWAY e` — Mischievous Rival):** Hero finds a glowing `1` and tries building a simple cozy bridge across a chasm (`Want`). Accidentally sparks a cheeky **living `e`** (`LivingEntity` with running legs & smug brows) who steals Hero's `+` sign and sprints away laughing! *Try #1:* Hero builds a `2×` lasso — `e` effortlessly multiplies into `e²` and vaults over! *Try #2:* Hero grabs `-` like a staff and swings — `e` ducks, triggers `e^x` giant growth spurt, and chases Hero across the chasm! *Try #3:* Hero spots the forgotten Act-I `0` rolled under a ledge, winds up a baseball throw (`throwWindup → throwRelease → evalBallisticArc`), and bonks `e`'s exponent into **`e⁰ = 1`** — shrinking giant `e` back into a cute tiny `1` that sheepishly helps finish Hero's bridge!
+- **Coding (`CLONE TROUBLE` — Creation Gone Wild):** Hero is exhausted trying to push a massive glowing `1000 kg` block off the exit door (`Want`). Finds `for(2)` and spawns 1 helpful mini-clone — still too heavy (`exhausted` slump + `scratchHead`). Hero gets greedy and edits `2 → 99`! A hilarious wave of over-eager clones stampedes out, starts stacking each other, tossing blocks wildly, and accidentally locks Hero *on top* of the pile! Hero `tiptoe`s down behind the chaotic `for(99)` terminal, gently drops the original `0` / `break;` lever, calms the clones into one synchronized push, and all of them walk happily out the open door together!
+- **Chemistry (`CATALYST` — Locked Exit / Mixing Comedy):** Hero wants to light an unlit lantern / melt an ice wall blocking the exit (`Want`). Mixes tiny `H` + `H` → cute tiny spark (`Try #1`, fizzles out, Hero `shrug`s). Dumps the whole beaker in (`Try #2`) → runaway foam/acid geyser blasts Hero around the lab! *Try #3:* Drops ONE calm neutralizer (`OH⁻`) + single glowing spark → steady golden flame melts the exit cleanly!
+
+---
+
+## 7. Mandatory Pre-Code Beat Script Table
+
+Before writing any TSX, lock the entire film in this **Story-First Beat Script** so visuals, physical props, acting pauses, camera punch-ins, and silence-first audio share ONE source of truth:
 
 ```markdown
-| Time (s) | Act | Stage | Hero Action & Acting Beat | Boss State | Domain Formula / Prop | Camera (fx, fy, zoom) | Audio & Foley Cue |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 0.0–2.0 | I | S1 | Portal opens; Hero tumbles out, flips mid-air, lands with heavy squash | — | `AudioPortal` + Single `440 Hz` string | `(420, 860, 1.30)` → `(520, 950, 1.08)` | Portal shimmer + sub-thump Kick + Low Tom + `A2/A4` real piano |
-| 2.0–4.5 | I | S1 | Curious head tilt (`lookTarget`), walks over, pokes `♩` with right hand → steps back surprised | — | `♩ = ♪ + ♪` | `(520, 950, 1.08)` | Woodblock snap + twin eighth-note piano hits |
+| Time (s) | Story Function | Hero Pantomime & Held Prop | Rival / World Reaction | Physical Cause → Effect | Camera `(fx, fy, zoom)` | Silence / Foley / Music Cue |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 0.0–3.2 | Goal Setup | Drops in, dusts off, walks to locked Exit Door, pulls handle twice → `scratchHead` + `?` | Door rattles, stays dead shut | Establishes clear Want in 3s! | `(440, 1020, 1.25)` → `(540, 1020, 1.05)` | SILENCE + thump + door rattle knocks |
+| 3.2–6.0 | Discovery | Spots glowing `F →` arrow on floor, crouches (`autoFloorCrouch`), picks it up in `rightHand` | Arrow wiggles elastically in hand | Prop enters continuous held state | `(480, 1080, 1.22)` | Footsteps + elastic pop + 1 soft piano note |
 ```

@@ -1,7 +1,11 @@
 /**
- * Canonical End-to-End Composition Skeleton for `stickman-vs-world` V3 (9:16 @ 60fps).
- * Copy into `src/<slug>/MainComposition.tsx` and adapt to whichever Macro-Structure you chose
- * (Vertical Tower, Horizontal Road-Trip, Clone Sandbox, or Escape Chamber).
+ * Canonical Zero-HUD Cinema Story Skeleton for `stickman-vs-world` v5 (9:16 @ 60fps).
+ * Pre-wired with:
+ *  - Ground-locked zero-slide footsteps (`walkDist: k.walkDist`) + smooth turn-squash
+ *  - Auto-derived jump anticipations & landings (`autoDeriveJumpTiming`)
+ *  - Smart Cinema Camera (`evalSmartCamera` with subtle handheld reaction breathing!)
+ *  - Ground `<ContactShadow>`, automatic landing `<DustPuff>`, `<ImpactStar>`, wordless `<ThoughtBubble>`
+ *  - Expressive `<LivingEntity>` rival + continuous carried/thrown prop (`evalBallisticArc`)
  */
 import React from "react";
 import { AbsoluteFill, Audio, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
@@ -15,17 +19,16 @@ import {
   easeInOutCubic,
   easeOutBack,
   easeOutCubic,
-  easeSnap,
   elasticScale,
-  evalRecoilOffset,
+  evalBallisticArc,
+  evalPropBounce,
   HitStop,
   realTimeOf,
-  RecoilHit,
   ShakeBurst,
   smoothstep,
   Vec2,
 } from "./ik";
-import { buildCamTransform, CameraKeyframe, evalCamera } from "./cameraEngine";
+import { buildCamTransform, CameraKeyframe, evalSmartCamera } from "./cameraEngine";
 import {
   computeKinematics,
   evalDecayPulses,
@@ -38,70 +41,67 @@ import {
   StickmanEmotion,
   synthesizePhysicsPose,
 } from "./poseEngine";
+import { autoDeriveJumpTiming } from "./timeline";
 import {
   ActionSpeedLines,
   applySecondaryMotion,
-  ArticulatedLimb,
-  BossEye,
+  ContactShadow,
+  DustPuff,
+  ExpressiveEmote,
   GlowFilterDefs,
   GlowLine,
+  ImpactStar,
+  LivingEntity,
   ShockwaveBlast,
-  SlashSmear,
   solveStickmanRig,
   StickmanBase,
   StickmanPose,
+  ThoughtBubble,
 } from "./rig";
 
 export const COMP_WIDTH = 1080;
 export const COMP_HEIGHT = 1920;
 export const COMP_FPS = 60;
-export const COMP_DURATION_FRAMES = 5400; // 90s @ 60fps
+export const COMP_DURATION_FRAMES = 3600; // 60s @ 60fps
 
-// Example world layout (adjust to Vertical Tower or Horizontal Panorama per Stage 1 choice)
-const S1_Y = 0;
-const S2_Y = -1920;
-const S3_Y = -3840;
-const FLOOR_1 = S1_Y + 1090;
+const FLOOR_Y = 1220;
+const PROP_REST: Vec2 = { x: 460, y: FLOOR_Y - 24 };
+const PROP_LAND: Vec2 = { x: 760, y: FLOOR_Y - 24 };
 
-const HIT_STOPS: HitStop[] = [
-  { at: 54.45, duration: 0.05 }, // 3-frame impact freeze
-  { at: 84.0, duration: 0.067 }, // 4-frame climax freeze
-];
+const HIT_STOPS: HitStop[] = [{ at: 52.0, duration: 0.067 }];
 
 const HERO_PATH: KeyPoint[] = [
-  { t: 0.0, x: 300, y: S1_Y + 420 },
-  { t: 2.0, x: 300, y: FLOOR_1, ease: easeInCubic },
-  { t: 3.4, x: computeContactX(520, 1, CONTACT_REACH.POKE), y: FLOOR_1, ease: easeInOutCubic },
-  { t: 4.1, x: 360, y: FLOOR_1, ease: easeOutCubic }, // Curiosity recoil step back
-  { t: 54.45, x: computeContactX(780, 1, CONTACT_REACH.KICK, 36), y: FLOOR_1 - 40, ease: easeSnap },
-  { t: 58.0, x: 420, y: S2_Y + 1060, ease: easeInOutCubic },
-  { t: 74.0, x: 540, y: S3_Y + 600, ease: easeInOutCubic },
-  { t: 84.0, x: 540, y: S3_Y + 1140, ease: easeSnap },
-  { t: 90.0, x: 540, y: S3_Y + 1300, ease: easeOutCubic },
+  { t: 0.0, x: 240, y: 460 },
+  { t: 1.8, x: 240, y: FLOOR_Y, ease: easeInCubic },
+  { t: 3.4, x: 240, y: FLOOR_Y },
+  { t: 4.8, x: computeContactX(PROP_REST.x, 1, CONTACT_REACH.GRAB), y: FLOOR_Y, ease: easeInOutCubic },
+  { t: 7.4, x: computeContactX(PROP_REST.x, 1, CONTACT_REACH.GRAB), y: FLOOR_Y },
+  { t: 54.0, x: 540, y: FLOOR_Y, ease: easeInOutCubic },
+  { t: 60.0, x: 540, y: FLOOR_Y },
 ];
 
-const HOP_ARCS: HopArc[] = [
-  [3.95, 4.3, 55],
-  [53.8, 54.6, 130],
+const RIVAL_PATH: KeyPoint[] = [
+  { t: 0.0, x: 820, y: FLOOR_Y },
+  { t: 7.5, x: 820, y: FLOOR_Y },
+  { t: 9.0, x: 690, y: FLOOR_Y, ease: easeOutCubic },
+  { t: 60.0, x: 690, y: FLOOR_Y },
 ];
 
-const ANTICIPATION_TIMES = [53.8, 83.75];
-const LANDING_TIMES = [2.0, 4.3, 85.4];
-const BOSS_HITS: RecoilHit[] = [{ at: 54.45, dx: 42, dy: -65, decay: 6.5 }];
+const HOP_ARCS: HopArc[] = [[6.2, 6.55, 45]];
+const { anticipationTimes: ANTICIPATION_TIMES, landingTimes: LANDING_TIMES } = autoDeriveJumpTiming(
+  HERO_PATH,
+  HOP_ARCS
+);
 
 const CAMERA_KEYS: CameraKeyframe[] = [
-  { t: 0.0, fx: 440, fy: S1_Y + 860, zoom: 1.28 },
-  { t: 3.0, fx: 540, fy: S1_Y + 960, zoom: 1.05, ease: easeInOutCubic },
-  { t: 54.5, fx: 540, fy: S1_Y + 960, zoom: 1.04 },
-  { t: 58.0, fx: 540, fy: S2_Y + 960, zoom: 1.04, ease: easeInOutCubic },
-  { t: 74.0, fx: 540, fy: S3_Y + 960, zoom: 1.12, ease: easeInOutCubic },
-  { t: 85.5, fx: 540, fy: S3_Y + 960, zoom: 1.0, ease: easeOutCubic },
+  { t: 0.0, fx: 320, fy: 960, zoom: 1.28 },
+  { t: 3.0, fx: 520, fy: 1020, zoom: 1.05, ease: easeInOutCubic },
+  { t: 60.0, fx: 540, fy: 1020, zoom: 1.0, ease: easeOutCubic },
 ];
 
 const SHAKE_BURSTS: ShakeBurst[] = [
-  { at: realTimeOf(2.0, HIT_STOPS), amp: 14 },
-  { at: realTimeOf(54.45, HIT_STOPS), amp: 22 },
-  { at: realTimeOf(84.0, HIT_STOPS), amp: 34, decay: 8 },
+  { at: realTimeOf(1.8, HIT_STOPS), amp: 12 },
+  { at: realTimeOf(52.0, HIT_STOPS), amp: 28, decay: 8 },
 ];
 
 function heroPosAt(t: number): Vec2 {
@@ -109,40 +109,50 @@ function heroPosAt(t: number): Vec2 {
   return { x: base.x, y: base.y - evalHopArcs(HOP_ARCS, t) };
 }
 
+function rivalPosAt(t: number): Vec2 {
+  return evalPath(RIVAL_PATH, t);
+}
+
 function rawHeroPoseAt(t: number): StickmanPose {
-  const k = computeKinematics(heroPosAt, t, 1);
-  const hopH = evalHopArcs(HOP_ARCS, t);
-  const airborne = t < 2.0 || hopH > 12 || (t >= 54.45 && t < 58.0) || (t >= 70.0 && t < 85.2);
-  const beatPulse = Math.exp(-((t % 0.5) / 0.5) * 6.5);
+  const k = computeKinematics(heroPosAt, t, 1, HERO_PATH);
+  const airborne = t < 1.8 || evalHopArcs(HOP_ARCS, t) > 10;
 
   let emotion: StickmanEmotion = "neutral";
-  if (t >= 2.8 && t < 3.6) emotion = "curious";
-  else if (t >= 3.9 && t < 4.5) emotion = "shocked"; // Works mid-run & mid-hop too!
-
   let action: StickmanAction = "none";
-  if (t >= 54.2 && t < 54.8) action = "kick";
-  else if (t >= 86.0) action = "victory";
+  let actionProgress = 0;
 
-  const lookTarget: Vec2 | null = t < 10 ? { x: 520, y: FLOOR_1 - 95 } : { x: 780, y: FLOOR_1 - 120 };
-  const rightHandWorld: Vec2 | null = t >= 3.35 && t < 3.85 ? { x: 520, y: FLOOR_1 - 12 } : null; // Reaches all the way to floor!
+  if (t >= 2.2 && t < 3.4) {
+    emotion = "confused";
+    action = "scratchHead";
+  } else if (t >= 6.6 && t < 7.05) {
+    action = "throwWindup";
+    actionProgress = clamp01((t - 6.6) / 0.45);
+  } else if (t >= 7.05 && t < 7.45) {
+    action = "throwRelease";
+    actionProgress = clamp01((t - 7.05) / 0.35);
+  } else if (t >= 55.0) {
+    action = "dustHands";
+  }
+
+  const rightHandWorld: Vec2 | null = t >= 4.95 && t < 5.55 ? PROP_REST : null;
 
   return synthesizePhysicsPose({
     x: k.x,
     y: k.y,
     vx: k.vx,
     vy: k.vy,
-    ax: k.ax, // Enables automatic heel-plant skid braking!
+    ax: k.ax,
+    walkDist: k.walkDist,
     facing: k.facing,
     airborne,
     t,
-    beatPulse,
-    lookTarget,
+    lookTarget: rivalPosAt(t),
     rightHandWorld,
     anticipation: evalDecayPulses(ANTICIPATION_TIMES, t, 0.16, "before"),
     squash: evalDecayPulses(LANDING_TIMES, t, 0.24, "after"),
     emotion,
     action,
-    bodyRotation: t < 2.0 ? clamp01((t - 1.15) / 0.85) * Math.PI * 2 : 0,
+    actionProgress,
   });
 }
 
@@ -152,110 +162,102 @@ export const MainComposition: React.FC = () => {
   const realT = frame / fps;
   const { animT } = applyHitStops(realT, HIT_STOPS);
 
-  const climaxRealT = realTimeOf(84.0, HIT_STOPS);
-  const isImpactFrame = realT >= climaxRealT && realT < climaxRealT + 0.045;
+  const climaxRealT = realTimeOf(52.0, HIT_STOPS);
+  const isImpactFrame = realT >= climaxRealT && realT < climaxRealT + 0.05;
 
-  const cam = evalCamera(CAMERA_KEYS, animT);
+  const cam = evalSmartCamera(CAMERA_KEYS, animT, {
+    handheldAmp: animT >= 2.0 && animT < 3.6 ? 2.2 : 0, // Subtle organic cinema breathing on reaction close-up!
+  });
   const shake = computeCameraShake(realT, SHAKE_BURSTS);
   const camTransform = buildCamTransform(cam, shake, COMP_WIDTH, COMP_HEIGHT);
 
-  const smoothNow = smoothSynthesizedPose(rawHeroPoseAt, animT, 0.04);
-  const smoothPrev = smoothSynthesizedPose(rawHeroPoseAt, Math.max(0, animT - 0.025), 0.04);
+  const smoothNow = smoothSynthesizedPose(rawHeroPoseAt, animT, 0.038);
+  const smoothPrev = smoothSynthesizedPose(rawHeroPoseAt, Math.max(0, animT - 0.025), 0.038);
   const heroPose = applySecondaryMotion(smoothNow, smoothPrev, 0.025);
-  const rig = solveStickmanRig(heroPose);
-  const powerBoost = animT >= 82.5 && animT < 86.0 ? smoothstep((animT - 82.5) / 0.6) : 0;
+  const heroRig = solveStickmanRig(heroPose);
 
-  const propBounce = elasticScale(animT, 3.55, 0.28);
-  const bossRecoil = evalRecoilOffset(animT, BOSS_HITS);
-  const bossPos = { x: 780 + bossRecoil.x, y: FLOOR_1 - 110 + bossRecoil.y };
-  const showAfterimages = ((animT >= 53.8 && animT <= 57.6) || (animT >= 83.7 && animT <= 84.5)) && !isImpactFrame;
+  const rivalK = computeKinematics(rivalPosAt, animT, -1, RIVAL_PATH);
+
+  // Continuous Physical Prop: Rest -> Held in Hand -> Ballistic Throw -> Multi-Bounce!
+  let propPos = PROP_REST;
+  let propRot = 0;
+  if (animT >= 5.35 && animT < 7.15) {
+    propPos = heroRig.rightHand;
+  } else if (animT >= 7.15 && animT < 7.95) {
+    const arc = evalBallisticArc(heroRig.rightHand, PROP_LAND, 7.15, 7.95, animT, 180, 540);
+    propPos = { x: arc.x, y: arc.y };
+    propRot = arc.rotDeg;
+  } else if (animT >= 7.95) {
+    propPos = { x: PROP_LAND.x, y: PROP_LAND.y - evalPropBounce(animT, 7.95, 44) };
+  }
+  const propBounce = elasticScale(animT, 7.95, 0.26);
 
   return (
     <AbsoluteFill style={{ backgroundColor: isImpactFrame ? "#FFFFFF" : "#000000" }}>
-      <Audio key="ost-v1" src={staticFile("sfx/ost-v1.mp3")} volume={1.0} />
+      <Audio key="story-v1" src={staticFile("sfx/story-v1.mp3")} volume={1.0} />
 
       <svg width={COMP_WIDTH} height={COMP_HEIGHT} viewBox={`0 0 ${COMP_WIDTH} ${COMP_HEIGHT}`} style={{ display: "block" }}>
         <GlowFilterDefs />
         <rect x={0} y={0} width={COMP_WIDTH} height={COMP_HEIGHT} fill={isImpactFrame ? "#FFFFFF" : "#000000"} />
 
-        {animT >= 2.35 && animT < 85.5 && !isImpactFrame && (
-          <text
-            x={540}
-            y={128}
-            textAnchor="middle"
-            fontFamily="system-ui, sans-serif"
-            fontWeight={800}
-            fontSize={24}
-            letterSpacing={5}
-            fill="#64748B"
-            opacity={smoothstep((animT - 2.35) / 0.4)}
-          >
-            I. FIRST CONTACT
-          </text>
-        )}
-
+        {/* PURE ZERO-HUD CINEMA WORLD SPACE */}
         <g transform={camTransform}>
-          {/* Bulletproof GlowLine for horizontal/flat wires & floors (zero bbox-filter bugs & fast GPU!) */}
-          <GlowLine x1={60} y1={FLOOR_1} x2={1020} y2={FLOOR_1} color="#38BDF8" width={3.5} />
+          <GlowLine x1={60} y1={FLOOR_Y} x2={1020} y2={FLOOR_Y} color="#38BDF8" width={3.5} />
 
-          {/* Example Reactive Spring Primitive */}
-          <g transform={`translate(520, ${FLOOR_1 - 16}) scale(${propBounce.sx}, ${propBounce.sy})`}>
-            <circle cx={0} cy={0} r={18} fill="none" stroke="#7DD3FC" strokeWidth={4} filter="url(#cyan-glow)" />
-          </g>
+          {/* V5 Altitude-Aware Ground Contact Shadows */}
+          {!isImpactFrame && (
+            <>
+              <ContactShadow x={heroPose.x} floorY={FLOOR_Y} heightAboveFloor={FLOOR_Y - heroPose.y} />
+              <ContactShadow x={rivalK.x} floorY={FLOOR_Y} heightAboveFloor={FLOOR_Y - rivalK.y} color="#FB7185" baseRadiusX={26} />
+            </>
+          )}
 
-          {/* Example Articulated Boss with Tracking Eye & IK Limb (NOT a static polygon!) */}
-          <g>
-            <ArticulatedLimb
-              root={{ x: bossPos.x - 36, y: bossPos.y + 8 }}
-              target={{ x: bossPos.x - 108, y: bossPos.y + 22 + Math.sin(animT * 5) * 18 }}
-              len1={52}
-              len2={48}
-              bendDir={-1}
-              color="#FB7185"
-            />
-            <polygon
-              points={`${bossPos.x},${bossPos.y - 56} ${bossPos.x + 50},${bossPos.y + 44} ${bossPos.x - 50},${bossPos.y + 44}`}
-              fill="#14060D"
-              stroke="#FB7185"
-              strokeWidth={5}
-              filter="url(#magenta-glow)"
-            />
-            <BossEye cx={bossPos.x} cy={bossPos.y} radius={18} lookTarget={rig.headCenter} mood="angry" />
-          </g>
-
-          {showAfterimages &&
-            [0.028, 0.056, 0.084].map((dt, idx) => (
-              <StickmanBase
-                key={idx}
-                pose={smoothSynthesizedPose(rawHeroPoseAt, Math.max(0, animT - dt), 0.035)}
-                powerBoost={powerBoost}
-                opacity={0.22 - idx * 0.055}
-              />
+          {/* V5 Automatic Ground Dust Puffs on Every Landing */}
+          {!isImpactFrame &&
+            LANDING_TIMES.map((lt) => (
+              <DustPuff key={lt} x={heroPosAt(lt).x} floorY={FLOOR_Y} progress={clamp01((animT - lt) / 0.36)} />
             ))}
 
-          <StickmanBase
-            pose={heroPose}
-            powerBoost={powerBoost}
+          {/* Physically Carried & Thrown Prop */}
+          <g transform={`translate(${propPos.x}, ${propPos.y}) rotate(${propRot}) scale(${propBounce.sx}, ${propBounce.sy})`}>
+            <circle cx={0} cy={0} r={22} fill="#020617" stroke="#FACC15" strokeWidth={4} filter="url(#gold-glow)" />
+          </g>
+
+          {/* Living Rival with Zero-Slide IK Legs */}
+          <LivingEntity
+            x={rivalK.x}
+            y={rivalK.y}
+            vx={rivalK.vx}
+            vy={rivalK.vy}
+            walkDist={rivalK.walkDist}
+            time={animT}
+            symbol="e"
+            facing={rivalK.facing}
+            mood={animT >= 7.95 ? "shocked" : "smug"}
+            lookTarget={heroRig.headCenter}
             silhouetteMode={isImpactFrame}
-            renderHeadAccessory={({ headR, accentColor }) => (
-              <path
-                d={`M ${-headR - 2} 2 A ${headR + 3} ${headR + 3} 0 0 1 ${headR + 2} 2`}
-                fill="none"
-                stroke={accentColor}
-                strokeWidth={4.5}
-              />
-            )}
           />
 
-          <SlashSmear cx={rig.rightFoot.x} cy={rig.rightFoot.y} radius={150} rotationDeg={-25} progress={clamp01((animT - 54.35) / 0.3)} color="#FACC15" />
-          <ShockwaveBlast cx={540} cy={S3_Y + 1140} progress={clamp01((animT - 84.0) / 0.8)} maxRadius={780} color="#FACC15" />
+          <StickmanBase pose={heroPose} silhouetteMode={isImpactFrame} />
+
+          {/* Wordless Pictogram Thought Bubble + Silent Emote + Contact Star */}
+          {!isImpactFrame && (
+            <>
+              <ThoughtBubble x={heroRig.headCenter.x + 76} y={heroRig.headCenter.y - 88} progress={clamp01((animT - 2.3) / 1.4)} pictogram="door" />
+              <ExpressiveEmote x={heroRig.headCenter.x + 34} y={heroRig.headCenter.y - 34} kind="?" progress={clamp01((animT - 2.35) / 0.9)} />
+              <ImpactStar cx={PROP_LAND.x} cy={PROP_LAND.y} progress={clamp01((animT - 7.95) / 0.26)} />
+            </>
+          )}
+
+          <ShockwaveBlast cx={540} cy={FLOOR_Y - 80} progress={clamp01((animT - 52.0) / 0.75)} maxRadius={720} color="#FACC15" />
         </g>
 
-        <ActionSpeedLines mode="radial" intensity={animT >= 83.95 && animT < 85.0 ? 1.0 : 0} time={animT} color="#FACC15" width={COMP_WIDTH} height={COMP_HEIGHT} />
+        <ActionSpeedLines mode="radial" intensity={animT >= 51.95 && animT < 52.8 ? 1 : 0} time={animT} color="#FACC15" width={COMP_WIDTH} height={COMP_HEIGHT} />
 
-        {animT >= 85.8 && (
-          <g opacity={smoothstep((animT - 85.8) / 0.8)} transform={`translate(540, 560) scale(${easeOutBack(clamp01((animT - 85.8) / 0.5))})`}>
-            <text x={0} y={0} textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight={900} fontSize={88} letterSpacing={8} fill="#FFFFFF" filter="url(#cyan-glow)">
+        {/* Minimalist End Title Only (last 4s; use letterSpacing={0} for Thai/non-Latin!) */}
+        {animT >= 56.0 && !isImpactFrame && (
+          <g opacity={smoothstep((animT - 56.0) / 0.7)} transform={`translate(540, 560) scale(${easeOutBack(clamp01((animT - 56.0) / 0.45))})`}>
+            <text x={0} y={0} textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight={900} fontSize={84} letterSpacing={8} fill="#FFFFFF" filter="url(#cyan-glow)">
               TITLE HERE
             </text>
           </g>

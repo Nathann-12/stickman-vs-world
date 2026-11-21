@@ -1,5 +1,5 @@
 import { StickmanPose } from "./rig";
-import { clamp, clamp01, lerp, Vec2 } from "./ik";
+import { clamp, clamp01, lerp, smoothstep, Vec2 } from "./ik";
 
 export type KeyPoint = {
   t: number;
@@ -26,6 +26,45 @@ export function evalPath(points: KeyPoint[], t: number): Vec2 {
   return { x: last.x, y: last.y };
 }
 
+/**
+ * Exact O(K) monotonic horizontal ground distance traveled along a KeyPoint path.
+ * Drives ground-locked footsteps so planted feet NEVER slide across the floor!
+ */
+export function evalGroundDistance(points: KeyPoint[], t: number): number {
+  if (t <= points[0].t) return 0;
+  let dist = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (t >= b.t) {
+      dist += Math.abs(b.x - a.x);
+    } else {
+      const u = clamp01((t - a.t) / Math.max(0.0001, b.t - a.t));
+      const e = b.ease ? b.ease(u) : u;
+      dist += Math.abs(lerp(a.x, b.x, e) - a.x);
+      return dist;
+    }
+  }
+  return dist;
+}
+
+/** Fallback numerical ground-distance integrator when raw `posAt` is passed without KeyPoints. */
+function integrateGroundDistance(posAt: (timeSec: number) => Vec2, t: number): number {
+  if (t <= 0) return 0;
+  const step = 0.08;
+  let dist = 0;
+  let prevX = posAt(0).x;
+  let s = step;
+  while (s < t) {
+    const curX = posAt(s).x;
+    dist += Math.abs(curX - prevX);
+    prevX = curX;
+    s += step;
+  }
+  dist += Math.abs(posAt(t).x - prevX);
+  return dist;
+}
+
 /** Evaluates parabolic vertical jump lift from a list of [start, end, height] arcs. */
 export function evalHopArcs(arcs: HopArc[], t: number): number {
   let h = 0;
@@ -38,8 +77,8 @@ export function evalHopArcs(arcs: HopArc[], t: number): number {
 }
 
 /**
- * Evaluates a dynamic moving floor surface `floorYAt(x, t)` (e.g. an oscillating AC sine wave
- * or tilting bridge) and returns exact foot anchor `(x, y)` plus surface tangent `slopeRad`!
+ * Evaluates a dynamic moving floor surface `floorYAt(x, t)` (e.g. a seesaw, wave, or ramp)
+ * and returns exact foot anchor `(x, y)` plus surface tangent `slopeRad`.
  */
 export function evalSurfaceAnchor(
   x: number,
@@ -72,12 +111,25 @@ export function evalDecayPulses(
   return v;
 }
 
-/** Central-difference velocity, acceleration (for automatic skid braking!), & facing calculator. */
+/**
+ * Central-difference velocity, acceleration, facing, AND exact monotonic `walkDist`
+ * for zero-foot-slide ground-locked footsteps!
+ */
 export function computeKinematics(
   posAt: (timeSec: number) => Vec2,
   t: number,
-  defaultFacing: 1 | -1 = 1
-): { x: number; y: number; vx: number; vy: number; ax: number; speed: number; facing: 1 | -1 } {
+  defaultFacing: 1 | -1 = 1,
+  pathPoints?: KeyPoint[]
+): {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  ax: number;
+  speed: number;
+  facing: 1 | -1;
+  walkDist: number;
+} {
   const dt = 0.025;
   const p0 = posAt(Math.max(0, t - dt));
   const p1 = posAt(t);
@@ -86,19 +138,75 @@ export function computeKinematics(
   const vy = (p2.y - p0.y) / (2 * dt);
   const ax = (p2.x - 2 * p1.x + p0.x) / (dt * dt);
   const speed = Math.hypot(vx, vy);
-  const facing: 1 | -1 = Math.abs(vx) > 25 ? (vx >= 0 ? 1 : -1) : defaultFacing;
-  return { x: p1.x, y: p1.y, vx, vy, ax, speed, facing };
+  const facing: 1 | -1 = Math.abs(vx) > 12 ? (vx >= 0 ? 1 : -1) : defaultFacing;
+  const walkDist = pathPoints ? evalGroundDistance(pathPoints, t) : integrateGroundDistance(posAt, t);
+  return { x: p1.x, y: p1.y, vx, vy, ax, speed, facing, walkDist };
 }
 
-export type StickmanEmotion = "neutral" | "curious" | "shocked" | "determined" | "celebrate";
-export type StickmanAction = "none" | "slash" | "kick" | "victory" | "brace" | "push";
+/** Expressive character emotions usable while idle, walking, running, OR airborne! */
+export type StickmanEmotion =
+  | "neutral"
+  | "curious"
+  | "shocked"
+  | "determined"
+  | "celebrate"
+  | "confused"
+  | "exhausted"
+  | "smug"
+  | "panicked";
+
+/** Rich Alan-Becker silent-film pantomime & physical action library! */
+export type StickmanAction =
+  | "none"
+  | "scratchHead"
+  | "shrug"
+  | "point"
+  | "tiptoe"
+  | "carry"
+  | "throwWindup"
+  | "throwRelease"
+  | "stumble"
+  | "dustHands"
+  | "wipeBrow"
+  | "slash"
+  | "kick"
+  | "victory"
+  | "brace"
+  | "push";
 
 /**
- * Generates an organic, physics- & acting-driven StickmanPose:
- * - Grounded moving -> speed-coupled walk/run + automatic skid-braking lean on hard stops!
+ * Evaluates a true ground-locked 2-phase (Stance + Swing) foot target from monotonic `walkDist`.
+ * During stance (`0 <= c < 1`), localX moves linearly `+halfStep -> -halfStep` at `y = 0`,
+ * cancelling body motion 1:1 so the planted foot stays GLUED to the exact floor pixel!
+ */
+function evalPlantedFoot(
+  cycle: number,
+  halfStep: number,
+  swingExtend: number,
+  liftPx: number
+): Vec2 {
+  const c = ((cycle % 2) + 2) % 2;
+  if (c < 1) {
+    // STANCE PHASE: Foot firmly planted on floor (y = 0), sliding backward at exact -vx!
+    return { x: lerp(halfStep, -halfStep, c), y: 0 };
+  }
+  // SWING PHASE: Foot peels cleanly off floor, arcs smoothly forward, plants ahead!
+  const u = c - 1;
+  const xBase = lerp(-halfStep, halfStep, smoothstep(u));
+  const xExtra = Math.sin(u * Math.PI) * swingExtend;
+  return {
+    x: xBase + xExtra * 0.35,
+    y: -Math.sin(u * Math.PI) * liftPx,
+  };
+}
+
+/**
+ * Generates an organic, physics- & pantomime-driven StickmanPose:
+ * - Grounded moving -> ZERO-SLIDE ground-locked footsteps (`walkDist`), smooth walk->sprint transition,
+ *   delicate ground-locked `tiptoe` sneak, and sprint-only heel-plant skidding (never skids on casual walks!)
  * - Airborne -> rising knee tuck + vertical stretch vs. falling landing reach
- * - Emotions work BOTH while idle AND while moving/jumping (e.g. panic sprint, joy jump!)
- * - Supports sustained `crouch` (0..1) and floor-level `leftHandWorld`/`rightHandWorld` pickup!
+ * - Expressive silent-film pantomime (`scratchHead`, `shrug`, `point`, `stumble`, `wipeBrow`, `dustHands`, `throwWindup`)
+ * - Dual world-space hand locks (`leftHandWorld`, `rightHandWorld`) reaching all the way to floor level!
  */
 export function synthesizePhysicsPose(opts: {
   x: number;
@@ -106,6 +214,8 @@ export function synthesizePhysicsPose(opts: {
   vx: number;
   vy: number;
   ax?: number;
+  /** Exact monotonic horizontal ground distance from `computeKinematics` (guarantees zero foot-slide!) */
+  walkDist?: number;
   facing: 1 | -1;
   airborne: boolean;
   t: number;
@@ -120,7 +230,7 @@ export function synthesizePhysicsPose(opts: {
   recoil?: number;
   headShake?: number;
   bodyRotation?: number;
-  /** Optional dynamic surface slope (from evalSurfaceAnchor) for wave/ramp surfing */
+  /** Optional dynamic surface slope (from evalSurfaceAnchor) for wave/ramp/seesaw surfing */
   surfaceSlopeRad?: number;
   emotion?: StickmanEmotion;
   action?: StickmanAction;
@@ -132,6 +242,7 @@ export function synthesizePhysicsPose(opts: {
     vx,
     vy,
     ax = 0,
+    walkDist,
     facing,
     airborne,
     t,
@@ -151,7 +262,7 @@ export function synthesizePhysicsPose(opts: {
     actionProgress = 0,
   } = opts;
 
-  // Auto-bend slightly if either hand actively reaches near the floor (`y - rootY > -28`)
+  // Auto-bend slightly if either hand actively reaches near the floor (`y - rootY > -30`)
   let autoFloorCrouch = 0;
   if (!airborne) {
     if (rightHandWorld && rightHandWorld.y - y > -30) {
@@ -164,7 +275,7 @@ export function synthesizePhysicsPose(opts: {
   const crouchAmt = clamp01(Math.max(crouch, autoFloorCrouch));
 
   // 1. Gaze tracking + comedic head shake
-  let headTilt = beatPulse * 0.07;
+  let headTilt = beatPulse * 0.06;
   if (lookTarget) {
     const dx = (lookTarget.x - x) * facing;
     const dy = lookTarget.y - (y - (145 - crouchAmt * 32));
@@ -175,9 +286,9 @@ export function synthesizePhysicsPose(opts: {
   }
 
   const compress = clamp01(squash + anticipation * 0.75);
-  let hipOffset: Vec2 = { x: 0, y: -74 + beatPulse * 5 + compress * 22 + crouchAmt * 34 };
-  let torsoLean = clamp((vx * facing) / 750, -0.35, 0.72) + anticipation * 0.26 + crouchAmt * 0.42;
-  let torsoCurve = 6 + clamp((vx * facing) / 140, -6, 10);
+  let hipOffset: Vec2 = { x: 0, y: -74 + beatPulse * 4 + compress * 22 + crouchAmt * 34 };
+  let torsoLean = clamp((vx * facing) / 820, -0.3, 0.68) + anticipation * 0.26 + crouchAmt * 0.42;
+  let torsoCurve = 6 + clamp((vx * facing) / 160, -6, 10);
   let leftFoot: Vec2 = { x: -20 - crouchAmt * 14, y: 0 };
   let rightFoot: Vec2 = { x: 22 + crouchAmt * 14, y: 0 };
   let leftHand: Vec2 = { x: -24, y: -82 + beatPulse * 3 + crouchAmt * 28 };
@@ -199,88 +310,146 @@ export function synthesizePhysicsPose(opts: {
     leftHand = { x: -38, y: rising ? -132 : -118 };
     rightHand = { x: 44, y: rising ? -142 : -112 };
 
-    // Mid-air emotional acting (celebration jump, panic flail, determined dive!)
     if (emotion === "celebrate") {
       leftHand = { x: -36, y: -154 };
       rightHand = { x: 42, y: -158 };
       torsoLean = -0.08;
-    } else if (emotion === "shocked") {
-      const flail = Math.sin(t * 28) * 14;
-      torsoLean = -0.35;
-      leftHand = { x: -46, y: -136 + flail };
-      rightHand = { x: 46, y: -136 - flail };
+    } else if (emotion === "shocked" || emotion === "panicked") {
+      const flail = Math.sin(t * 30) * 16;
+      torsoLean = -0.36;
+      leftHand = { x: -48, y: -138 + flail };
+      rightHand = { x: 48, y: -138 - flail };
     } else if (emotion === "determined") {
       torsoLean = 0.48;
       leftHand = { x: -34, y: -102 };
       rightHand = { x: 52, y: -96 };
     }
-  } else if (Math.abs(vx) > 35) {
-    // Check for strong horizontal braking -> automatic Alan-Becker heel-plant skid!
-    const isSkidding = vx * ax < -22000 && Math.abs(vx) > 75 && crouchAmt < 0.3;
-    if (isSkidding) {
-      hipOffset = { x: -12, y: -56 };
-      torsoLean = -0.36;
+  } else if (Math.abs(vx) > 4) {
+    // Only trigger anime heel-plant skid on an EMERGENCY HARD BRAKE FROM A FULL SPRINT!
+    // Never skids during casual walking, carrying objects, or tiptoe sneaking!
+    const isHardSprintSkid =
+      Math.abs(vx) > 290 &&
+      vx * ax < -220000 &&
+      crouchAmt < 0.25 &&
+      action === "none";
+
+    if (isHardSprintSkid) {
+      hipOffset = { x: -12, y: -58 };
+      torsoLean = -0.34;
       torsoCurve = -8;
       headTilt += 0.16;
       leftFoot = { x: -24, y: 0 };
-      rightFoot = { x: 42, y: 0 };
-      leftHand = { x: -44, y: -86 };
+      rightFoot = { x: 40, y: 0 };
+      leftHand = { x: -44, y: -88 };
       rightHand = { x: 28, y: -112 };
-      scaleX = 1.06;
-      scaleY = 0.94;
+      scaleX = 1.05;
+      scaleY = 0.95;
+    } else if (action === "tiptoe") {
+      // Ground-locked delicate sneaking tiptoe: zero floor-slide, high careful knees!
+      const dist = walkDist ?? Math.abs(x);
+      const halfStep = 21;
+      const cycle = dist / (halfStep * 2);
+      const moveBlend = smoothstep(clamp01((Math.abs(vx) - 4) / 28));
+      const lTarget = evalPlantedFoot(cycle, halfStep, 4, 28);
+      const rTarget = evalPlantedFoot(cycle + 1, halfStep, 4, 28);
+      const stepBob = Math.abs(Math.sin(cycle * Math.PI)) * 6 * moveBlend;
+
+      hipOffset = { x: 4 * moveBlend, y: -68 + stepBob };
+      torsoLean = lerp(0.18, 0.34, moveBlend);
+      torsoCurve = 12;
+      headTilt -= 0.12;
+      leftFoot = { x: lerp(-18, lTarget.x, moveBlend), y: lTarget.y * moveBlend };
+      rightFoot = { x: lerp(20, rTarget.x, moveBlend), y: rTarget.y * moveBlend };
+      leftHand = { x: -16, y: -104 + Math.sin(cycle * Math.PI) * 5 * moveBlend };
+      rightHand = { x: 38, y: -106 - Math.sin(cycle * Math.PI) * 5 * moveBlend };
     } else {
-      const runBlend = clamp01((Math.abs(vx) - 80) / 300);
-      const phase = t * lerp(9.5, 19.0, runBlend);
-      const stride = lerp(26, 52, runBlend);
-      const lift = lerp(12, 30, runBlend);
-      const bob = Math.abs(Math.sin(phase)) * lerp(5, 11, runBlend);
+      // TRUE GROUND-LOCKED WALK / RUN CYCLE: planted foot stays glued to floor pixel-for-pixel!
+      const dist = walkDist ?? Math.abs(x);
+      const absVx = Math.abs(vx);
+      const moveBlend = smoothstep(clamp01((absVx - 4) / 42));
+      const runBlend = smoothstep(clamp01((absVx - 150) / 260));
 
-      hipOffset = { x: lerp(2, 8, runBlend), y: -72 + runBlend * 8 - bob + crouchAmt * 22 };
-      torsoLean = lerp(0.18, 0.68, runBlend) + crouchAmt * 0.2;
+      // Constant 58px step distance (halfStep = 29px) guarantees 0.00px foot slip during walks!
+      const halfStep = 29;
+      const cycle = dist / (halfStep * 2);
+      const lift = lerp(14, 34, runBlend);
+      const swingExtend = lerp(0, 22, runBlend);
+
+      const lTarget = evalPlantedFoot(cycle, halfStep, swingExtend, lift);
+      const rTarget = evalPlantedFoot(cycle + 1, halfStep, swingExtend, lift);
+      const bob = Math.abs(Math.sin(cycle * Math.PI)) * lerp(4, 11, runBlend) * moveBlend;
+
+      hipOffset = {
+        x: lerp(0, lerp(2, 8, runBlend), moveBlend),
+        y: -73 + runBlend * 7 - bob + crouchAmt * 22,
+      };
+      torsoLean = lerp(0.06, lerp(0.14, 0.64, runBlend), moveBlend) + crouchAmt * 0.2;
       torsoCurve = lerp(5, 11, runBlend);
-      leftFoot = { x: Math.sin(phase) * stride - 4, y: Math.min(0, -Math.cos(phase) * lift) };
-      rightFoot = { x: Math.sin(phase + Math.PI) * stride - 4, y: Math.min(0, -Math.cos(phase + Math.PI) * lift) };
-      leftHand = { x: Math.sin(phase + Math.PI) * stride * 0.85, y: -88 - bob + crouchAmt * 18 };
-      rightHand = { x: Math.sin(phase) * stride * 0.85, y: -88 - bob + crouchAmt * 18 };
 
-      // Mid-run emotional acting (panic-flail sprint, heroic charge, joy skip!)
-      if (emotion === "shocked") {
-        const flail = Math.sin(t * 26) * 18;
-        torsoLean = 0.22;
+      leftFoot = {
+        x: lerp(-20 - crouchAmt * 14, lTarget.x, moveBlend),
+        y: lTarget.y * moveBlend,
+      };
+      rightFoot = {
+        x: lerp(22 + crouchAmt * 14, rTarget.x, moveBlend),
+        y: rTarget.y * moveBlend,
+      };
+
+      // Arms swing smoothly in natural opposition to legs!
+      const armPhase = Math.cos(cycle * Math.PI);
+      const armSwing = lerp(20, 44, runBlend) * moveBlend;
+      leftHand = { x: -armPhase * armSwing - 4, y: -86 - bob + crouchAmt * 18 };
+      rightHand = { x: armPhase * armSwing + 6, y: -86 - bob + crouchAmt * 18 };
+
+      if (emotion === "shocked" || emotion === "panicked") {
+        const flail = Math.sin(t * 28) * 18;
+        torsoLean = 0.24;
         headTilt -= 0.18;
         leftHand = { x: -34 + flail * 0.4, y: -136 + flail };
         rightHand = { x: 38 - flail * 0.4, y: -138 - flail };
       } else if (emotion === "determined") {
-        torsoLean = lerp(0.36, 0.82, runBlend);
-        leftHand = { x: -46, y: -84 - bob };
-        rightHand = { x: 46, y: -88 - bob };
+        torsoLean = lerp(0.28, 0.78, runBlend);
+        leftHand = { x: -42, y: -84 - bob };
+        rightHand = { x: 44, y: -88 - bob };
       } else if (emotion === "celebrate") {
-        const pump = Math.sin(phase) * 14;
-        torsoLean = 0.08;
+        const pump = Math.sin(cycle * Math.PI) * 12;
+        torsoLean = 0.06;
         leftHand = { x: -28, y: -144 + pump };
         rightHand = { x: 34, y: -146 - pump };
+      } else if (emotion === "exhausted") {
+        hipOffset.y += 10;
+        torsoLean = 0.45;
+        torsoCurve = 12;
+        headTilt += 0.25;
+        leftHand = { x: 6, y: -58 };
+        rightHand = { x: 18, y: -56 };
       }
     }
   } else {
-    const sway = Math.sin(t * Math.PI * 2) * 3.5;
-    hipOffset = { x: sway * 0.5, y: -72 + beatPulse * 5 + compress * 22 + crouchAmt * 34 };
-    torsoLean = 0.08 + sway * 0.012 + anticipation * 0.25 + crouchAmt * 0.42;
+    const sway = Math.sin(t * 2.8) * 2.8;
+    hipOffset = { x: sway * 0.5, y: -72 + beatPulse * 4 + compress * 22 + crouchAmt * 34 };
+    torsoLean = 0.06 + sway * 0.01 + anticipation * 0.25 + crouchAmt * 0.42;
     leftFoot = { x: -22 - crouchAmt * 14, y: 0 };
     rightFoot = { x: 24 + crouchAmt * 14, y: 0 };
-    leftHand = { x: -26 - sway * 0.5, y: -82 + beatPulse * 4 + crouchAmt * 28 };
-    rightHand = { x: 32 + sway * 0.5, y: -84 + beatPulse * 4 + crouchAmt * 28 };
+    leftHand = { x: -24 - sway * 0.4, y: -82 + beatPulse * 3 + crouchAmt * 28 };
+    rightHand = { x: 28 + sway * 0.4, y: -84 + beatPulse * 3 + crouchAmt * 28 };
 
     if (emotion === "curious") {
       torsoLean = 0.24 + crouchAmt * 0.3;
       torsoCurve = 10;
-      rightHand = { x: 22, y: -116 + crouchAmt * 28 };
+      rightHand = { x: 22, y: -118 + crouchAmt * 28 };
       leftHand = { x: -20, y: -78 + crouchAmt * 24 };
-    } else if (emotion === "shocked") {
-      torsoLean = -0.32;
-      torsoCurve = -8;
+    } else if (emotion === "confused") {
+      torsoLean = -0.06;
+      headTilt += 0.24;
+      leftHand = { x: -34, y: -96 };
+      rightHand = { x: 18, y: -142 };
+    } else if (emotion === "shocked" || emotion === "panicked") {
+      torsoLean = -0.34;
+      torsoCurve = -9;
       hipOffset.y -= 8;
-      leftHand = { x: -38, y: -130 };
-      rightHand = { x: 44, y: -128 };
+      leftHand = { x: -40, y: -134 };
+      rightHand = { x: 46, y: -132 };
     } else if (emotion === "determined") {
       hipOffset.y += 12;
       torsoLean = 0.34;
@@ -293,6 +462,21 @@ export function synthesizePhysicsPose(opts: {
       torsoLean = -0.05;
       leftHand = { x: -36, y: -146 + pump };
       rightHand = { x: 38, y: -148 - pump };
+    } else if (emotion === "exhausted") {
+      hipOffset = { x: -4, y: -58 };
+      torsoLean = 0.48;
+      torsoCurve = 14;
+      headTilt += 0.32;
+      leftFoot = { x: -26, y: 0 };
+      rightFoot = { x: 26, y: 0 };
+      leftHand = { x: 8, y: -56 + Math.sin(t * 4.5) * 4 };
+      rightHand = { x: 24, y: -54 + Math.sin(t * 4.5) * 4 };
+    } else if (emotion === "smug") {
+      torsoLean = -0.16;
+      torsoCurve = -6;
+      headTilt -= 0.14;
+      leftHand = { x: -20, y: -88 };
+      rightHand = { x: 22, y: -88 };
     }
   }
 
@@ -305,8 +489,64 @@ export function synthesizePhysicsPose(opts: {
     rightHand = { x: 20, y: -118 };
   }
 
-  // 4. Combat & Interactive Action overlays
-  if (action === "slash") {
+  // 4. Pantomime Acting & Combat Action overlays
+  if (action === "scratchHead") {
+    const scratch = Math.sin(t * 14) * 5;
+    torsoLean = -0.05;
+    headTilt += 0.18;
+    leftHand = { x: -20, y: -86 };
+    rightHand = { x: 10 + scratch, y: -158 + scratch * 0.4 };
+  } else if (action === "shrug") {
+    const bob = Math.sin(t * 6) * 4;
+    hipOffset.y += 4;
+    torsoLean = -0.04;
+    headTilt += 0.2;
+    leftHand = { x: -44, y: -112 + bob };
+    rightHand = { x: 46, y: -112 + bob };
+  } else if (action === "point") {
+    torsoLean = 0.22;
+    torsoCurve = 8;
+    leftHand = { x: -26, y: -88 };
+    rightHand = { x: 68, y: -118 };
+  } else if (action === "carry") {
+    torsoLean = Math.abs(vx) > 20 ? torsoLean * 0.35 - 0.1 : -0.12;
+    torsoCurve = -4;
+    leftHand = { x: 14, y: -146 };
+    rightHand = { x: 34, y: -146 };
+  } else if (action === "throwWindup") {
+    const p = clamp01(actionProgress);
+    torsoLean = lerp(0.0, -0.42, p);
+    torsoCurve = lerp(4, -10, p);
+    leftHand = { x: lerp(16, 48, p), y: -108 };
+    rightHand = { x: lerp(26, -54, p), y: lerp(-96, -138, p) };
+  } else if (action === "throwRelease") {
+    const p = clamp01(actionProgress);
+    torsoLean = lerp(-0.35, 0.56, p);
+    torsoCurve = lerp(-8, 12, p);
+    leftHand = { x: lerp(42, -38, p), y: -96 };
+    rightHand = { x: lerp(-46, 68, p), y: lerp(-136, -124, p) };
+  } else if (action === "stumble") {
+    const p = clamp01(actionProgress);
+    hipOffset = { x: lerp(0, 18, p), y: lerp(-68, -28, p) };
+    torsoLean = lerp(0.4, 1.18, p);
+    torsoCurve = 12;
+    leftFoot = { x: -42, y: -10 };
+    rightFoot = { x: -12, y: 0 };
+    leftHand = { x: 24, y: -42 };
+    rightHand = { x: 56, y: -16 };
+  } else if (action === "dustHands") {
+    const clap = Math.sin(t * 22) * 14;
+    torsoLean = -0.06;
+    headTilt -= 0.08;
+    leftHand = { x: 18 + clap, y: -98 };
+    rightHand = { x: 24 - clap, y: -100 };
+  } else if (action === "wipeBrow") {
+    const wipe = Math.sin(t * 8) * 14;
+    torsoLean = -0.1;
+    headTilt -= 0.14;
+    leftHand = { x: -24, y: -84 };
+    rightHand = { x: 12 + wipe, y: -146 };
+  } else if (action === "slash") {
     const p = clamp01(actionProgress);
     torsoLean = lerp(-0.15, 0.58, p);
     hipOffset.x = lerp(-10, 14, p);
@@ -338,7 +578,7 @@ export function synthesizePhysicsPose(opts: {
     rightHand = { x: 38, y: -148 + Math.sin(t * 3.5) * 4 };
   }
 
-  // 5. Dual World-Space Hand IK Locks (now reaches ALL THE WAY to floor level y = 0!)
+  // 5. Dual World-Space Hand IK Locks (reaches all the way down to floor y = 0!)
   if (leftHandWorld) {
     leftHand = {
       x: clamp((leftHandWorld.x - x) * facing, -68, 80),
@@ -372,7 +612,7 @@ export function synthesizePhysicsPose(opts: {
 
 /**
  * Tight 5-tap C¹ temporal smoother (0.035–0.045s window).
- * Removes joint pops across path corners while preserving crisp martial-arts snap.
+ * Removes joint pops across path corners while preserving crisp acting & martial-arts snap.
  */
 export function smoothSynthesizedPose(
   poseFn: (timeSec: number) => StickmanPose,
@@ -387,10 +627,12 @@ export function smoothSynthesizedPose(
   let lfX = 0, lfY = 0, rfX = 0, rfY = 0, lhX = 0, lhY = 0, rhX = 0, rhY = 0;
   let scaleX = 0, scaleY = 0, bodyRotation = 0;
 
+  let facingChanges = 0;
   for (let i = 0; i < offsets.length; i++) {
     const p = poseFn(Math.max(0, t + offsets[i] * windowSec));
     const w = weights[i];
     const fs = p.facing === center.facing ? 1 : -1;
+    if (fs === -1) facingChanges += w;
     x += p.x * w;
     y += p.y * w;
     hipX += p.hipOffset.x * fs * w;
@@ -411,6 +653,9 @@ export function smoothSynthesizedPose(
     bodyRotation += (p.bodyRotation ?? 0) * w;
   }
 
+  // Smooth cartoon turn-squash: gently narrows X across a facing flip so turns feel organic, never 1-frame snaps!
+  const turnSquash = 1 - Math.min(0.45, facingChanges * 0.9);
+
   return {
     x,
     y,
@@ -423,7 +668,7 @@ export function smoothSynthesizedPose(
     rightFoot: { x: rfX, y: rfY },
     leftHand: { x: lhX, y: lhY },
     rightHand: { x: rhX, y: rhY },
-    scaleX,
+    scaleX: scaleX * turnSquash,
     scaleY,
     bodyRotation,
   };
